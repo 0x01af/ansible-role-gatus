@@ -1,0 +1,8 @@
+---
+- name: 'Validating playbook action'
+  ansible.builtin.assert:
+    that: playbook_action in ['bootstrap', 'housekeeping', 'uninstall']
+    fail_msg: "Invalid playbook action: '{{ playbook_action }}'! Allowed values are: bootstrap, housekeeping, uninstall"
+
+- name: 'Run playbook action of role'
+  ansible.builtin.include_tasks: "{{ playbook_action }}.yaml"
