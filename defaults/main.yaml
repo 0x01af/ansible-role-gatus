@@ -1,0 +1,25 @@
+---
+# General defaults
+playbook_action: 'bootstrap' # default behavior of Ansible plays is bootstrapping and updating
+# Role defaults
+gatus:
+  version: 'v5.37.0' # https://github.com/TwiN/gatus
+  namespace: "gatus"
+  mode: "prod" # test
+  frontend:
+    fqdn: "gatus.fqdn"
+  alerting:
+    homeassistant:
+      url: "http://home-assistant-service.home-assistant.svc.cluster.local:8123"
+  endpoints:
+    - name: "example"
+      url: "https://example.org"
+      interval: "60s"
+      conditions:
+        - "[STATUS] == 200"
+        - "[BODY] == pat(*<h1>Example Domain</h1>*)"
+      alerts:
+        - type: "homeassistant"
+          failure_threshold: 1
+          success_threshold: 1
+          send_on_resolved: "true"
