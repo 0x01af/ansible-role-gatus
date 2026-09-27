@@ -1,4 +1,4 @@
-= Ansible role for Gatus =
+# Ansible role for Gatus
 
 An Ansible role for deploying and managing
 * Gatus - an automated status pages with real-time uptime monitoring and event alerting to multiple channels.
