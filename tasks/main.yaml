@@ -1,4 +1,14 @@
 ---
+- name: 'Validating role facts'
+  ansible.builtin.assert:
+    that:
+      - k8s is not falsy
+      - k8s.ingress is not falsy
+      - k8s.ingress.class is not falsy
+      - gatus is not falsy
+      - gatus.version is not falsy
+    fail_msg: "Undefined role fact: One or more essential role fact is not defined! Please check your inventory."
+
 - name: 'Validating playbook action'
   ansible.builtin.assert:
     that: playbook_action in ['bootstrap', 'housekeeping', 'uninstall']

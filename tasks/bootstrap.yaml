@@ -1,25 +1,16 @@
 ---
-# - name: "deploy prerequisites"
-#  kubernetes.core.k8s:
-#    state: present
-    # src: 'rauthy-prerequisites.yaml'
-    # definition: |-
-    # template: 'rauthy-prerequisites.yaml.j2'
-    # - path: 'file1.j2'
-    # - path: 'file2.j2'
-
-- name: "k8s_app gatus (monitoring)"
-  when: _k8s_app.version != 'none'
+- name: "Gatus K8s deployment: bootstrap"
+  when: gatus.version != 'none'
   block:
     - name: "deploy prerequisites of gatus"
       kubernetes.core.k8s:
         state: present
-        template: 'gatus-prerequisites.yaml.j2'
+        template: 'gatus-k8s-prerequisites.yaml.j2'
       register: _gatus_prerequisites
     - name: "deploy gatus"
       kubernetes.core.k8s:
         state: present
-        template: 'gatus.yaml.j2'
+        template: 'gatus-k8s-deployment.yaml.j2'
       register: _gatus_deployment
     - name: "force pod recreation via Rollout (Clean Sledgehammer)"
       when: _gatus_prerequisites.changed or _gatus_deployment.changed
@@ -29,7 +20,7 @@
           kind: Deployment
           metadata:
             name: gatus-app
-            namespace: "{{ _k8s_app.namespace | default('gatus') }}"
+            namespace: "{{ gatus.namespace }}"
           spec:
             template:
               metadata:
@@ -39,4 +30,4 @@
     - name: "configure ingress for gatus"
       kubernetes.core.k8s:
         state: present
-        template: 'gatus-ingress.yaml.j2'
+        template: 'gatus-k8s-ingress.yaml.j2'

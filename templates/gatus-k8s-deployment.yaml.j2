@@ -1,0 +1,78 @@
+# based on:
+# - https://github.com/TwiN/terraform-kubernetes-gatus
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gatus-service
+  namespace: "{{ gatus.namespace }}"
+  labels:
+    app: gatus-app
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8080
+      targetPort: http-gatus
+  selector:
+    app: gatus-app
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gatus-app
+  namespace: "{{ gatus.namespace }}"
+  # annotations:
+  #  checksum/config: sha1(jsonencode(kubernetes_config_map_v1.gatus.data))
+  labels:
+    app: gatus-app
+spec:
+  replicas: 1
+  # Revision History: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#revision-history-limit
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      app: gatus-app
+  template:
+    metadata:
+      labels:
+        app: gatus-app
+    spec:
+      securityContext:
+        fsGroup: 65534
+      containers:
+      - image: "twinproduction/gatus:{{ gatus.version }}"
+        name: gatus-container
+        resources:
+          requests:
+            memory: "40Mi"
+          limits:
+            memory: "80Mi"
+        ports:
+        - containerPort: 8080
+          name: http-gatus
+        readinessProbe:
+          httpGet:
+            path: "/health"
+            port: http-gatus
+          initialDelaySeconds: 2
+          periodSeconds: 8
+          failureThreshold: 1
+          successThreshold: 1
+          timeoutSeconds: 2
+        livenessProbe:
+          httpGet:
+            path: "/health"
+            port: http-gatus
+          initialDelaySeconds: 2
+          periodSeconds: 8
+          failureThreshold: 3
+          successThreshold: 1
+          timeoutSeconds: 2
+        volumeMounts:
+        - name: gatus-configmap-config
+          mountPath: /config/config.yaml
+          subPath: config.yaml
+      volumes:
+      - name: gatus-configmap-config
+        configMap:
+          name: gatus-configmap-config

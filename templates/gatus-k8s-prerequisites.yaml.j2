@@ -1,0 +1,43 @@
+# based on:
+# - https://github.com/TwiN/terraform-kubernetes-gatus
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: "{{ gatus.namespace }}"
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: gatus-configmap-config
+  namespace: "{{ gatus.namespace }}"
+data:
+  config.yaml: |-
+    endpoints:
+{% for ep in gatus.endpoints %}
+      - name: "{{ ep.name }}"
+        url: "{{ ep.url }}"
+{% if ep.interval is defined %}
+        interval: "{{ ep.interval }}"
+{% endif %}
+        conditions:
+{% for cond in ep.conditions %}
+          - "{{ cond }}"
+{% endfor %}
+        alerts:
+{% for alert in ep.alerts %}
+          - type: "{{ alert.type }}"
+            failure-threshold: {{ alert.failure_threshold | default(3) }}
+            success-threshold: {{ alert.success_threshold | default(2) }}
+            send-on-resolved: {{ alert.send_on_resolved | default(false) }}
+            description: "{{ alert.description | default("") }}"
+{% endfor %}
+{% endfor %}
+    alerting:
+{% if gatus.alerting.homeassistant is defined %}
+      homeassistant:
+        url: "{{ gatus.alerting.homeassistant.url }}"
+        token: {{ vault_gatus.alerting.homeassistant.token | to_json }}
+{% endif %}
+
+

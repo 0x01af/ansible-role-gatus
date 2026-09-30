@@ -7,7 +7,7 @@ gatus:
   namespace: "gatus"
   mode: "prod" # test
   frontend:
-    fqdn: "gatus.fqdn"
+    fqdn: "gatus.local"
   alerting:
     homeassistant:
       url: "http://home-assistant-service.home-assistant.svc.cluster.local:8123"
